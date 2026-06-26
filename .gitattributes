@@ -1,0 +1,9 @@
+# Default: let Git normalize text line endings in the repo
+* text=auto
+
+# Windows scripts keep CRLF
+*.ps1 text eol=crlf
+
+# ROM images are line-ending sensitive (the monitor strips the last byte of
+# each INST.ROM line) — store and check out their exact bytes, never convert.
+*.ROM -text

@@ -1,0 +1,31 @@
+Virtual TEC-2
+=============
+
+This project is a derivative work distributed under the MIT License
+(see LICENSE).
+
+Upstream / attribution
+----------------------
+* Original simulator: zhouguiheng/VirtualTEC2
+      https://github.com/zhouguiheng/VirtualTEC2
+      (TEC-2 microprogrammed-computer software simulator, Sun Yat-sen University)
+
+* Linux/macOS port this repository is based on: ri-char/VirtualTec2
+      https://github.com/ri-char/VirtualTec2
+      Copyright (c) 2022 virtualTec2 — MIT License
+
+The simulation core (bit.*, chip.*, tec2.*) and the curses monitor
+(monitor.cpp) originate from the projects above and remain under their
+original MIT terms.
+
+Additions in this repository
+----------------------------
+* tec2_cli.cpp        — a curses-free, scriptable command-line simulator with
+                        a persistent `--server` line protocol, and three custom
+                        course-design instructions (MADD, MMOV, JNE).
+* mcp/                — a Model Context Protocol server exposing the simulator
+                        to AI tools, plus the custom-instruction microcode.
+* headless_curses/    — a stub curses.h to build the original monitor headless
+                        for output-for-output comparison.
+
+These additions are licensed under the same MIT License.

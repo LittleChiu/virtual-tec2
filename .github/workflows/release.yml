@@ -1,0 +1,109 @@
+name: Release
+
+# Publish a GitHub Release automatically when a version tag is pushed.
+#   git tag v1.0.0 && git push origin v1.0.0
+# Each OS builds tec2_cli, bundles it with the ROMs + MCP server, and the
+# archives are attached to the release (with auto-generated notes).
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:        # allow manual build runs (no release published)
+
+permissions:
+  contents: write           # required to create the release
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            bin: tec2_cli
+            archive: tar
+          - os: macos-latest
+            target: macos-arm64
+            bin: tec2_cli
+            archive: tar
+          - os: windows-latest
+            target: windows-x64
+            bin: tec2_cli.exe
+            archive: zip
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSYS2 (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: mingw-w64-ucrt-x86_64-gcc
+
+      - name: Build (Windows, static)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: >
+          g++ -std=c++17 -O2 -static -static-libgcc -static-libstdc++
+          -o tec2_cli.exe bit.cpp chip.cpp tec2.cpp tec2_cli.cpp
+
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        run: g++ -std=c++17 -O2 -o tec2_cli bit.cpp chip.cpp tec2.cpp tec2_cli.cpp
+
+      - name: Smoke test
+        run: |
+          printf 'R\nQ\n' | ./${{ matrix.bin }} --server > smoke.txt
+          grep -q '__TEC2_READY__' smoke.txt
+          grep -q 'R_0=0000' smoke.txt
+          echo "smoke test passed"
+
+      - name: Package
+        run: |
+          PKG="virtual-tec2-${{ matrix.target }}"
+          mkdir -p "$PKG/mcp"
+          cp "${{ matrix.bin }}" INST.ROM MAPROM.ROM MCR.ROM readme.md LICENSE NOTICE "$PKG"/
+          cp mcp/tec2_mcp_server.py mcp/example_client.py mcp/README.md "$PKG/mcp"/
+          cp -r mcp/microcode "$PKG/mcp"/
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            7z a -bd "$PKG.zip" "$PKG" > /dev/null
+          else
+            tar czf "$PKG.tar.gz" "$PKG"
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: |
+            virtual-tec2-${{ matrix.target }}.zip
+            virtual-tec2-${{ matrix.target }}.tar.gz
+          if-no-files-found: ignore
+
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create GitHub Release and attach assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+          generate_release_notes: true
+          fail_on_unmatched_files: true

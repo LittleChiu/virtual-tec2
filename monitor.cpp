@@ -6,6 +6,9 @@
 #include <vector>
 #include "tec2.h"
 #include "bit.h"
+#ifdef NCURSES_VERSION
+#include <term.h> // enter_ca_mode / exit_ca_mode (to disable the alternate screen)
+#endif
 
 using namespace std;
 
@@ -70,6 +73,16 @@ int main() {
     cbreak();
     noecho();
     scrollok(win, true);
+#ifdef NCURSES_VERSION
+    // Stay on the terminal's normal screen instead of switching to the curses
+    // "alternate screen" buffer. That alternate buffer has no scrollback (the
+    // same reason you cannot scroll back through vim/less), which is why the
+    // monitor could not be scrolled up/down. With it disabled, lines that
+    // scroll off the top go into the terminal's native scrollback, so the user
+    // can scroll up/down (mouse wheel / scrollbar) to review past output.
+    if (enter_ca_mode) enter_ca_mode = nullptr;
+    if (exit_ca_mode) exit_ca_mode = nullptr;
+#endif
 
     init();
 

@@ -1,4 +1,22 @@
-
+# build output
 build/
-.idea/
+monitor_runtime/
 
+# compiled binaries / objects (built from source)
+*.exe
+*.o
+*.obj
+*.out
+
+# python / uv / mcp
+__pycache__/
+*.pyc
+.venv/
+.uv/
+
+# editors
+.idea/
+.vscode/
+
+# scratch
+_archive_scratch/
