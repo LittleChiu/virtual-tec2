@@ -86,7 +86,7 @@ int main() {
 
     init();
 
-    printw("TEC-2 CRT MONITOR\nfor macOS / Linux, June.2022\n\n");
+    printw("TEC-2 CRT MONITOR\nVirtual TEC-2 monitor, 2026\n\n");
     string my_buf="";
 
     while (true) {

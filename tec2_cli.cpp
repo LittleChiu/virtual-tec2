@@ -1628,7 +1628,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    cout << "TEC-2 CRT MONITOR\nfor macOS / Linux, June.2022\n\n";
+    cout << "TEC-2 CRT MONITOR\nVirtual TEC-2 scriptable CLI, 2026\n\n";
     string line;
     while (true) {
         cout << "> ";
